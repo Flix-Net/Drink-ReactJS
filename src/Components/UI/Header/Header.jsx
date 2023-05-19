@@ -22,6 +22,7 @@ const Header = () => {
             <Button variant="outlined"><Link className={styles.Link} to={"/SaleProducts"}>Продажа продукции</Link></Button>
             <Button variant="outlined"><Link className={styles.Link} to={"/FinishProducts"}>Готовая продукция</Link></Button>
             <Button variant="outlined"><Link className={styles.Link} to={"/Warehouse"}>Склад</Link></Button>
+            <Button variant="outlined"><Link className={styles.Link} to={"/Office"}>Офис</Link></Button>
         </MainBar>
     );
 };

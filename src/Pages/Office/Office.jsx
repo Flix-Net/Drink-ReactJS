@@ -8,6 +8,7 @@
     import ModalDeleteUnit from "./Unit/ModalDeleteUnit";
     import MainModalSalary from "./Salary/MainModalSalary";
     import ModalPaymentList from "./Salary/ModalPaymentList";
+    import ModalBank from "./Bank/ModalBank";
 
 
     let ManagePanel = styled.div`
@@ -33,6 +34,7 @@
         let [activeModalDeletePosition, setActiveModalDeletePosition] = React.useState(false);
         let [activeModalDeleteUnit, setActiveModalDeleteUnit] = React.useState(false);
         let [activeModalPaymentList, setActiveModalPaymentList] = React.useState(false);
+        let [activeModalBank, setActiveModalBank] = React.useState(false);
 
         let [selectedYear, setSelectedYear] = React.useState(0);
         let [selectedMonthID, setSelectedMonthID] = React.useState(0);
@@ -41,6 +43,11 @@
         return (
             <div>
                 <h1>Hello Office</h1>
+
+                <InputLabel sx={{ mt: 4.5 }} id="demo-simple-select-label">Банк</InputLabel>
+                <ManagePanel>
+                    <Button onClick={()=> setActiveModalBank(true)} sx={{ width: 260 }}  InputProps={{ sx: { height: 50 }}} variant="contained" color="success" >Банк</Button>
+                </ManagePanel>
 
                 <InputLabel sx={{ mt: 4.5 }} id="demo-simple-select-label">Отдел кадров</InputLabel>
                 <ManagePanel>
@@ -67,6 +74,11 @@
                 </ManagePanel>
 
 
+
+                {activeModalBank ? <ModalBank active={activeModalBank} setActive={setActiveModalBank} />
+                    :
+                    <></>
+                }
 
                 {activeModalEmployee ? <MainModalEmployee active={activeModalEmployee} setActive={setActiveModalEmployee} />
                     :

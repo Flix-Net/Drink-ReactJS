@@ -40,7 +40,7 @@
         let [updateFlag, setUpdateFlag] = React.useState(false);
         let arrYears = ["Выберите год",2021,2022,2023,2024,2025,2026];
         let [selectedYear, setSelectedYear] = React.useState(0);
-        let [selectedMonthID, setSelectedMonthID] = React.useState(0);
+        let [selectedMonthID, setSelectedMonthID] = React.useState(1);
         let [selectedMonthName, setSelectedMonthName] = React.useState("");
         let [payActive, setPayActive] = React.useState(false);
 
@@ -48,12 +48,12 @@
             const monthName = new Date(0, index).toLocaleString('default', { month: 'long' });
             const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
             return {
-                id: index,
+                id: index + 1,
                 name: capitalizedMonthName,
             };
         });
 
-
+        console.log(selectedMonthID);
 
         async function fetchRecordSalary(){
 
@@ -66,11 +66,11 @@
             setArrOnRequest(data.recordSalary);
         }
 
-        React.useEffect(async ()=>{
+        React.useEffect( ()=>{
 
             setArrOnRequest([]);
 
-            fetchRecordSalary();
+             fetchRecordSalary();
             setUpdateFlag(false);
 
         }, [updateFlag]);
@@ -134,7 +134,7 @@
                 <TableContainer style={{ maxHeight: `${400}px`, overflow: 'auto' }} >
                     <Table  size="small" aria-label="a dense table">
                         <TableHead>
-                            <TableRow>
+                            <TableRow key={uuidv4()} >
                                 <TableCell key={0} align="left">ФИО</TableCell>
                                 <TableCell key={1} align="left">Должность</TableCell>
                                 <TableCell key={2} align="left">Зарплата</TableCell>

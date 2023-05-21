@@ -16,6 +16,7 @@
     import {v4 as uuidv4} from "uuid";
     import axios from "axios";
     import styled from "styled-components";
+    import {toast} from "react-toastify";
 
     let ManagePanel = styled.div`
           width: 100%;
@@ -33,7 +34,7 @@
 
         let [arrPaymentList, setArrPaymentList] = React.useState([]);
         let [arrEmployees, setArrEmployees] = React.useState([]);
-        let [updateFlag, setUpdateFlag] = React.useState(false);
+        let [updateFlag, setUpdateFlag] = React.useState(true);
         let [myBalance, setMyBalance] = React.useState(0);
         let [selectedEmployeeID, setSelectedEmployeeID] = React.useState(0);
         let [resultSalary, setResultSalary] = React.useState(0);
@@ -47,24 +48,11 @@
                 NewSalary: resultSalary
             }
 
-            await axios.post("http://127.0.0.1:4556/api/Employee/updateSalary", objSalary);
+            const {data} =  await axios.post("http://127.0.0.1:4556/api/Employee/updateSalary", objSalary);
+            toast(data.message);
             setUpdateFlag(true);
         }
 
-        function calcSumSalary()
-        {
-            sumSalary = 0;
-
-
-
-
-
-
-        }
-
-        React.useEffect(()=>{
-            calcSumSalary();
-        },[sumSalary])
 
         async function fetchEmployees(){
             const {data} = await axios.get("http://127.0.0.1:4556/api/Employee/getEmployees");
@@ -84,16 +72,11 @@
         }, []);
 
         async function fetchAddNewPaymentList(){
-
-
                 let objData = {
                     MonthID:props.MonthID,
                     Year:props.Year
                 }
-
                 await axios.post("http://127.0.0.1:4556/api/Salary/newPaymentList", objData);
-
-            console.log("long = " + arrPaymentList.length);
 
         }
 
@@ -105,45 +88,76 @@
             setArrPaymentList(data.recordPayment)
         }
 
-        async function fetchGetSalaryEmployeeID(){
+        function fetchGetSalaryEmployeeID(){
 
+            if(arrPaymentList.length > 0)
+            {
+                const emp = arrPaymentList.filter((record) => {
+                    return record.ID_Employee === selectedEmployeeID;
+                });
 
-            const emp = arrPaymentList.filter((record) => {
-                return record.ID_Employee === selectedEmployeeID;
-            });
+                setResultSalary(emp[0].Result_Salary);
+            }
 
+        }
 
-            setResultSalary(emp[0].Result_Salary);
+        const downloadData = async ()=>{
+            await fetchAddNewPaymentList();
+            await fetchGetPaymentList();
         }
 
         React.useEffect(()=>{
-            fetchAddNewPaymentList();
-            fetchGetPaymentList();
 
-            // Вычисление суммы зарплат
-            let sumarySalary = arrPaymentList.reduce((accumulator, payment) => accumulator + payment.Result_Salary, 0);
-            setSumSalary(sumarySalary);
+            if(updateFlag)
+            {
+                downloadData();
+                setUpdateFlag(false);
+                setUpdateArrPaymentList(true);
+            }
 
-            setUpdateFlag(false);
-            setUpdateArrPaymentList(true);
         }, [updateFlag]);
 
         React.useEffect(()=>{
+            if (arrPaymentList.length > 0)
+            {
+                // Вычисление суммы зарплат
+                let sumarySalary = arrPaymentList.reduce((accumulator, payment) => accumulator + payment.Result_Salary, 0);
+                setSumSalary(sumarySalary);
+            }
 
-            fetchGetPaymentList();
-            setUpdateArrPaymentList(false);
-
-        }, [arrPaymentList & updateArrPaymentList]);
+        },[arrPaymentList])
 
         React.useEffect(()=>{
 
-            fetchGetSalaryEmployeeID();
-            setUpdateArrPaymentList(false);
+            if (arrPaymentList && updateArrPaymentList) {
+                fetchGetPaymentList();
+                setUpdateArrPaymentList(false);
+            }
+
+        }, [updateArrPaymentList]);
+
+        React.useEffect(()=>{
+            if (selectedEmployeeID) fetchGetSalaryEmployeeID();
 
         }, [selectedEmployeeID]);
 
         function cancelPayments(){
-            const {data} = axios.delete("http://127.0.0.1:4556/api/Salary/cancelPayments");
+            axios.delete("http://127.0.0.1:4556/api/Salary/cancelPayments");
+        }
+
+        async function paymentSalarys(){
+            const {data} = await axios.post("http://127.0.0.1:4556/api/Salary/paymentSalarys");
+            console.log(data)
+            if (data.status)
+            {
+                toast("Выплаты успешно завершены.");
+                fetchMyBalance();
+            }
+            else
+            {
+                toast("Недостаточно денег на балансе!");
+            }
+            setUpdateFlag(true);
         }
 
         return (
@@ -151,9 +165,10 @@
 
                 <h1>Выплаты</h1>
 
-                <span style={{
-                    border: '1px solid black',
-                    margin: '0px 200px'}} >Год: {props.Year} | Месяц: {props.MonthName}</span>
+                <div style={{
+                    fontSize: '18px', marginBottom: '10px'}} >Год: {props.Year} | Месяц: {props.MonthName}</div>
+
+                <div style={{ fontSize: '28px', marginBottom: '10px'}} > Баланс: {myBalance} сом</div>
 
                 <TableContainer style={{ maxHeight: `${400}px`, overflow: 'auto' }} >
                     <Table  size="small" aria-label="a dense table">
@@ -198,9 +213,7 @@
                 </TableContainer>
 
                 {/*style={{marginRight: spacing + 'em'}}*/}
-                <h2 style={{
-                    border: '1px solid black',
-                    margin: '20px 500px'}}>Итого к выплате: {sumSalary} сом</h2>
+                <h2 style={{ margin: '20px 500px'}}>Итого к выплате: {sumSalary} сом</h2>
 
 
                 <ManagePanel>
@@ -224,7 +237,7 @@
 
 
                     <Button  onClick={updateSalary} sx={{ width: 240 }}  InputProps={{ sx: { height: 50 }}} variant="outlined" color="success" >Изменить зарплату</Button>
-                    <Button  onClick={()=> {}} sx={{ width: 240 }}  InputProps={{ sx: { height: 50 }}} variant="contained" color="success" >Выплатить зарплату</Button>
+                    <Button  onClick={paymentSalarys} sx={{ width: 240 }}  InputProps={{ sx: { height: 50 }}} variant="contained" color="success" >Выплатить зарплату</Button>
                     <Button  onClick={cancelPayments} sx={{ width: 240 }}  InputProps={{ sx: { height: 50 }}} variant="contained" color="error" >Отменить выплаты</Button>
                 </ManagePanel>
 
